@@ -1,0 +1,27 @@
+cmake_minimum_required(VERSION 3.19)
+
+project(file2exe VERSION 0.0.1 LANGUAGES CXX)
+
+# Typically you don't care so much for a third party library's tests to be
+# run from your own project's code.
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+
+# If you only include this third party in PRIVATE source files, you do not
+# need to install it when your main project gets installed.
+# set(JSON_Install OFF CACHE INTERNAL "")
+
+# Don't use include(nlohmann_json/CMakeLists.txt) since that carries with it
+# unintended consequences that will break the build.  It's generally
+# discouraged (although not necessarily well documented as such) to use
+# include(...) for pulling in other CMake projects anyways.
+add_subdirectory(thirdparty/json-3.11.1)
+option(EMBED_JSON "embed json file in code" ON)
+if(EMBED_JSON)
+    include(json2code.cmake)
+endif()
+add_executable(${PROJECT_NAME} main.cpp)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json rc)
+if(EMBED_JSON)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE EMBED_JSON)
+endif()
